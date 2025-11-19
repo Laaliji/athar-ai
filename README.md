@@ -201,65 +201,9 @@ Choose AI models based on your needs:
 - **Caching**: Redis for frequent queries
 - **CDN**: Static asset optimization
 
-## 🤝 Contributing
 
-We welcome contributions to Athar.AI!
 
-### Areas for Contribution
 
-- **Dataset Expansion**: Add more Islamic heritage sources
-- **UI/UX Improvements**: Enhance the user interface
-- **Performance**: Optimize AI model performance
-- **Localization**: Add Arabic language support
-- **Documentation**: Improve guides and tutorials
 
-### Development Workflow
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
-
-## 📄 License & Ethics
-
-### License
-
-This project is open-source under MIT License. See `LICENSE` file for details.
-
-### Ethical Guidelines
-
-- **Educational Purpose**: Designed for learning about Islamic heritage
-- **Cultural Sensitivity**: Respectful representation of Islamic culture
-- **No Religious Rulings**: Avoids theological interpretations
-- **Source Attribution**: All content properly cited
-- **Privacy**: No personal data collection
-
-### Data Sources
-
-- Wikipedia articles (CC BY-SA license)
-- Public domain historical texts
-- Academic papers (open access)
-- Museum collections (public domain)
-
-## 🔗 Links & Resources
-
-- **Live Demo**: [athar-ai.com](https://athar-ai.com) (coming soon)
-- **Documentation**: [docs.athar-ai.com](https://docs.athar-ai.com)
-- **GitHub**: [github.com/your-repo/athar-ai](https://github.com/your-repo/athar-ai)
-- **Issues**: Report bugs and request features
-- **Discussions**: Community discussions and Q&A
-
-## 🏆 Acknowledgments
-
-- **LangChain**: For the RAG framework
-- **Hugging Face**: For free AI models
-- **Wikipedia**: For Islamic heritage content
-- **React & FastAPI**: For modern web architecture
-- **Islamic Art**: For design inspiration
-
----
-
-**Built with ❤️ for exploring the rich heritage of Islamic civilization**
 
 _"Seek knowledge from the cradle to the grave" - Islamic Proverb_
