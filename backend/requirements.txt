@@ -1,0 +1,30 @@
+# FastAPI Backend Requirements for Athar.AI
+
+# Core FastAPI
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# CORS and middleware
+python-jose[cryptography]>=3.3.0
+
+# RAG System Dependencies
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-core>=0.1.0
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# Free LLM support
+transformers>=4.30.0
+torch>=2.0.0
+accelerate>=0.20.0
+
+# Data processing
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+httpx>=0.25.0

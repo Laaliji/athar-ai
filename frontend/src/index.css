@@ -1,0 +1,340 @@
+@import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark Theme Colors */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #252525;
+  --bg-tertiary: #2f2f2f;
+  --bg-chat: #1e1e1e;
+  
+  /* Accent Colors */
+  --accent-primary: #d4633c;
+  --accent-hover: #e07347;
+  --accent-light: #e89474;
+  
+  /* Text Colors */
+  --text-primary: #e8e8e8;
+  --text-secondary: #a8a8a8;
+  --text-tertiary: #707070;
+  
+  /* Border Colors */
+  --border-color: #3a3a3a;
+  --border-light: #4a4a4a;
+  
+  /* Gold Accent */
+  --gold: #c9a961;
+  --gold-light: #d4b876;
+}
+
+@layer base {
+  html {
+    font-family: "Inter", sans-serif;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", serif;
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    background-color: var(--accent-primary);
+    color: white;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-light);
+  }
+
+  /* Cards */
+  .card {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    transition: all 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--border-light);
+    transform: translateY(-2px);
+  }
+
+  /* Input Fields */
+  .input-field {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .input-field::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background-color: var(--bg-secondary);
+  }
+
+  /* Islamic Geometric Pattern */
+  .islamic-pattern {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .islamic-pattern::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(212, 99, 60, 0.03) 35px, rgba(212, 99, 60, 0.03) 70px),
+      repeating-linear-gradient(-45deg, transparent, transparent 35px, rgba(201, 169, 97, 0.03) 35px, rgba(201, 169, 97, 0.03) 70px);
+    pointer-events: none;
+  }
+
+  /* Message Bubbles */
+  .message-user {
+    background-color: var(--accent-primary);
+    color: white;
+    padding: 0.875rem 1.25rem;
+    border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+    max-width: 80%;
+    margin-left: auto;
+  }
+
+  .message-bot {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    padding: 0.875rem 1.25rem;
+    border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+    max-width: 80%;
+    border: 1px solid var(--border-color);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-item {
+    padding: 0.875rem 1rem;
+    margin: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sidebar-item:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  .sidebar-item.active {
+    background-color: var(--bg-tertiary);
+    color: var(--accent-primary);
+    border-left: 3px solid var(--accent-primary);
+  }
+
+  /* Learn More Panel */
+  .learn-card {
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+  }
+
+  .learn-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-primary);
+  }
+
+  .learn-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+
+  .learn-card-content {
+    padding: 1rem;
+  }
+
+  .learn-card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .learn-card-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Suggestion Chips */
+  .suggestion-chip {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    padding: 0.625rem 1rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .suggestion-chip:hover {
+    background-color: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+  }
+
+  /* FAQ Accordion */
+  .faq-item {
+    background-color: var(--bg-tertiary);
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+  }
+
+  .faq-question {
+    padding: 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .faq-question:hover {
+    background-color: var(--bg-secondary);
+  }
+
+  .faq-answer {
+    padding: 0 1rem 1rem 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-primary), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-light);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    var(--bg-secondary) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
