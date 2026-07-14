@@ -1,209 +1,207 @@
-# 🌙 Athar.AI — Modern Islamic Heritage Explorer
+# Athar AI — Islamic Heritage Explorer
 
-**Athar.AI** is a cutting-edge web platform for exploring Islamic civilization through AI-powered conversations. Built with modern FastAPI + React architecture and **100% free models** - no API keys required!
+A conversational RAG (Retrieval-Augmented Generation) system for exploring Islamic history, architecture, science, and art. It combines BM25 keyword search, persistent semantic retrieval, reciprocal-rank fusion, cross-encoder reranking, and source-grounded generation.
 
-## ✨ Platform Features
+---
 
-- **🆓 Completely Free**: Uses open-source models (no OpenAI/API costs)
-- **🌐 Modern Web Platform**: Beautiful React frontend with FastAPI backend
-- **🧠 Advanced RAG System**: Smart retrieval with source citations
-- **📚 Rich Dataset**: Curated Islamic heritage knowledge base
-- **🎨 Islamic-Inspired Design**: Elegant UI with cultural aesthetics
-- **⚡ Real-time Chat**: Instant responses with typing indicators
-- **🔍 Source Transparency**: Every answer shows Wikipedia sources
-- **📱 Responsive Design**: Works on desktop, tablet, and mobile
+## Architecture
 
-## 🏗️ Modern Architecture
-
-- **Frontend**: React 18 + Tailwind CSS + Framer Motion + shadcn/ui
-- **Backend**: FastAPI + Python with async support
-- **UI Components**: Radix UI primitives with custom Islamic styling
-- **Animations**: Advanced Framer Motion with spring physics
-- **AI Models**: FLAN-T5, DialoGPT, DistilGPT2 (free)
-- **Embeddings**: Multilingual sentence transformers
-- **Vector DB**: ChromaDB with enhanced metadata
-- **Framework**: LangChain with specialized prompts
-- **Notifications**: React Hot Toast with custom styling
-
-## 🚀 Quick Start
-
-### Option 1: Enhanced Platform (Recommended)
-
-```bash
-# Setup enhanced platform with shadcn/ui
-python setup_enhanced_platform.py
-
-# Then launch the platform
-python run_platform.py
+```
+User Query
+    │
+    ├─► BM25 Retriever (rank_bm25)           ─┐
+    │   keyword-based, fast exact matching     │
+    │                                          ├─► RRF Fusion → top-k chunks
+    └─► Semantic Retriever (ChromaDB)         ─┘
+        dense embeddings, conceptual similarity
+                    │
+                    ▼
+            Context Builder
+        (chunks + conversation history)
+                    │
+                    ▼
+           LLM Generation
+        Groq → Ollama → HuggingFace
+                    │
+                    ▼
+        Streaming SSE response
 ```
 
-Then visit: http://localhost:3000
+**Hybrid retrieval** uses Reciprocal Rank Fusion (RRF) to combine BM25 and semantic scores without requiring score normalization. BM25 excels at named entities (scholars, places, dates); semantic search handles conceptual queries.
 
-### Option 2: Backend Only
+---
 
-```bash
-cd backend
-pip install -r requirements.txt
-python main.py
-```
+## Stack
 
-API available at: http://localhost:8000
+| Layer | Technology |
+|-------|-----------|
+| API | FastAPI + Uvicorn |
+| Vector store | ChromaDB |
+| Embeddings | `sentence-transformers/all-MiniLM-L6-v2`, with a deterministic hashing fallback |
+| Keyword retrieval | rank-bm25 |
+| LLM (primary) | Groq — Llama 3.3 70B |
+| LLM (local fallback) | Ollama |
+| LLM (offline fallback) | HuggingFace FLAN-T5 |
+| Frontend | React 18 |
+| Config | pydantic-settings |
+| Testing | pytest + ruff |
+| Deployment | Docker Compose |
 
-### Option 3: Legacy Interfaces
+---
 
-```bash
-# Streamlit app
-streamlit run streamlit_app.py
-
-# CLI interface
-python enhanced_free_rag.py
-
-# Jupyter notebook
-jupyter notebook enhanced_rag_notebook.ipynb
-```
-
-## 📋 Requirements
-
-- Python 3.8+
-- 4GB+ RAM (8GB recommended)
-- Optional: GPU for faster processing
-
-## 🎯 What You Can Ask
-
-- **History**: "What was the House of Wisdom?"
-- **Architecture**: "Describe Islamic architectural features"
-- **Scholars**: "Who was Ibn Khaldun?"
-- **Art**: "Tell me about Islamic calligraphy"
-- **Sites**: "What makes the Alhambra special?"
-- **Science**: "What innovations came from the Islamic Golden Age?"
-
-## 🔧 Enhanced vs Original
-
-| Feature   | Original         | Enhanced                          |
-| --------- | ---------------- | --------------------------------- |
-| LLM       | Requires API key | Free local models                 |
-| Prompting | Basic            | Specialized for Islamic heritage  |
-| Sources   | Limited          | Full citations with URLs          |
-| Interface | Notebook only    | CLI + Web + Notebook              |
-| Dataset   | Basic Wikipedia  | Expanded topics + metadata        |
-| Setup     | Manual           | Automated with `setup_and_run.py` |
-
-## ⚠️ Important Disclaimers
-
-- **Educational Purpose**: Provides historical and cultural information only
-- **No Religious Rulings**: Does not interpret religious texts or provide theological advice
-- **Source-Based**: All answers are grounded in provided academic sources
-
-## 🎨 Design & Theme
-
-Athar.AI features a carefully crafted Islamic-inspired design:
-
-- **Color Palette**: Deep blues, warm golds, and emerald greens
-- **Typography**: Playfair Display for headings, Inter for body text
-- **Patterns**: Subtle geometric Islamic patterns in backgrounds
-- **Animations**: Smooth, respectful motion design
-- **Accessibility**: RTL support ready for Arabic content
-
-## 📱 Platform Screenshots
-
-### Modern Chat Interface
-
-- Real-time conversations with AI
-- Source citations with Wikipedia links
-- Typing indicators and smooth animations
-- Mobile-responsive design
-
-### Features Showcase
-
-- Welcome screen with sample questions
-- Sidebar with system information
-- Loading states and error handling
-- Islamic geometric pattern backgrounds
-
-## 🛠️ Development Setup
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.8+
-- Node.js 16+
-- 4GB+ RAM (8GB recommended)
-- Optional: GPU for faster AI processing
+- Python 3.10+
+- Node.js 18+
+- A free [Groq API key](https://console.groq.com) (optional but recommended)
 
-### Backend Development
+### Setup
 
 ```bash
+git clone <repo-url>
+cd athar-ai
+
+# Backend
 cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+pip install -e ".[dev]"
+
+# Configure (add GROQ_API_KEY for best results)
+cp ../.env.example ../.env
+
+# Build the knowledge base
+cd ..
+python -m athar.ingestion --overwrite
+
+# Start the API server
+cd backend
+uvicorn athar.main:app --reload --port 8000
 ```
 
-### Frontend Development
-
 ```bash
+# Frontend (separate terminal)
 cd frontend
 npm install
 npm start
 ```
 
-### Full Stack Development
+Open http://localhost:3000. The API docs are at http://localhost:8000/api/docs.
+
+### Docker
 
 ```bash
-# Terminal 1: Backend
-cd backend && python main.py
-
-# Terminal 2: Frontend
-cd frontend && npm start
+docker compose up -d
+docker compose exec backend python -m athar.ingestion --overwrite
 ```
 
-## 🔧 Configuration
+---
 
-### Environment Variables
+## LLM Configuration
 
-Create `.env` files for configuration:
+Set `LLM_PROVIDER` in `.env`. The system falls through automatically if a provider is unavailable:
 
-**Backend (.env)**
+```
+# .env
+GROQ_API_KEY=gsk_...         # Free, fastest, best quality
+LLM_PROVIDER=groq
+
+# Or use Ollama for fully local inference:
+# LLM_PROVIDER=ollama
+# ollama pull llama3.2
+```
+
+---
+
+## Knowledge Base
+
+The ingestion pipeline fetches Wikipedia articles on Islamic civilization topics:
+
+- **Scholars**: Ibn Khaldun, Avicenna, Averroes, Al-Kindi, Al-Khwarizmi, Al-Biruni, Alhazen
+- **Architecture**: Alhambra, Dome of the Rock, Blue Mosque, Hagia Sophia, Great Mosque of Córdoba
+- **History**: House of Wisdom, Islamic Golden Age, Abbasid Caliphate, Al-Andalus, Ottoman Empire
+- **Science**: Islamic mathematics, astronomy, medicine, algebra
+- **Art & Culture**: Islamic calligraphy, geometric patterns, arabesque, Silk Road
+
+Running ingestion fetches up to 40 Wikipedia articles (plus Met Museum records for default ingestion), chunks them, stores vectors in ChromaDB, and rebuilds BM25 from the entire persisted corpus.
+
+### Retrieval guarantees
+
+- Persisted paths are resolved from the repository root, so ingestion and serving use the same ChromaDB directory.
+- The default dense encoder is `all-MiniLM-L6-v2`. If it cannot load, a stable feature-hashing encoder is used; it remains compatible with stored vectors after a restart.
+- Each collection records its embedding profile. The API refuses to query incompatible vectors rather than silently producing invalid rankings; rebuild them with `--overwrite`.
+- Every ingestion run rebuilds BM25 from ChromaDB, preventing drift between lexical and semantic retrieval.
+
+---
+
+## API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/query` | POST | Blocking query |
+| `/api/query/stream` | POST | SSE streaming query |
+| `/api/health` | GET | Health check |
+| `/api/status` | GET | System status |
+| `/api/sample-questions` | GET | Suggested questions |
+| `/api/admin/metrics` | GET | Query latency metrics |
+| `/api/admin/kb/stats` | GET | Knowledge base info |
+| `/api/admin/ingest` | POST | Trigger re-ingestion |
+
+---
+
+## Project Structure
+
+```
+athar-ai/
+├── backend/
+│   ├── src/athar/
+│   │   ├── config.py
+│   │   ├── main.py
+│   │   ├── api/routes/          # query, admin, health
+│   │   ├── rag/
+│   │   │   ├── pipeline.py
+│   │   │   ├── retrieval/       # semantic, bm25, hybrid
+│   │   │   ├── generation/      # llm.py (multi-provider)
+│   │   │   └── preprocessing/   # chunker
+│   │   ├── ingestion/           # fetcher, ingest pipeline
+│   │   └── models/schemas.py
+│   ├── tests/
+│   ├── pyproject.toml
+│   └── requirements.txt
+├── frontend/src/
+│   ├── App.js
+│   ├── components/
+│   │   ├── ChatInterface.js     # streaming chat
+│   │   ├── AdminDashboard.js
+│   │   └── ConversationSidebar.js
+│   └── services/api.js
+├── scripts/ingest.py
+├── docker-compose.yml
+└── .env.example
+```
+
+---
+
+## Tests
 
 ```bash
-# Optional: Customize model settings
-RAG_MODEL_NAME=distilgpt2
-CHUNK_SIZE=600
-MAX_SOURCES=3
+cd backend
+pytest tests/ -v
+ruff check src tests
 ```
 
-**Frontend (.env)**
+After ingestion, measure retriever hit-rate@5 and MRR against the curated evaluation set:
 
 ```bash
-REACT_APP_API_URL=http://localhost:8000
-REACT_APP_VERSION=2.0.0
+python scripts/evaluate_retrieval.py
 ```
 
-### Model Selection
+The evaluation focuses on retrieval quality, so chunking, indexing, and ranking regressions can be detected without an LLM judge.
 
-Choose AI models based on your needs:
+---
 
-- **FLAN-T5**: Best accuracy, instruction-following
-- **DialoGPT**: Conversational, natural responses
-- **DistilGPT2**: Fastest, lightweight option
+## Notes
 
-## 📊 Performance & Scaling
-
-### Current Performance
-
-- **Response Time**: < 2 seconds average
-- **Accuracy**: Source-grounded responses
-- **Cost**: $0.00 (completely free)
-- **Concurrent Users**: 10+ (single instance)
-
-### Scaling Options
-
-- **Horizontal**: Multiple backend instances
-- **GPU Acceleration**: 3-5x faster processing
-- **Caching**: Redis for frequent queries
-- **CDN**: Static asset optimization
-
-
-
-
-
-
-_"Seek knowledge from the cradle to the grave" - Islamic Proverb_
+- The `asyncio_mode` warning from pytest is harmless — it comes from the `anyio` plugin version mismatch with `pytest-asyncio`, not the project code.
+- For local inference without a GPU, Ollama on CPU works fine for smaller models (`llama3.2:3b`).
+- ChromaDB data persists in `./chroma_db/` between restarts. Delete it to start fresh.

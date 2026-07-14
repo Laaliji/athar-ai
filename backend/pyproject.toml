@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "athar-ai"
+version = "3.0.0"
+description = "Islamic Heritage Explorer — Production-quality RAG with hybrid retrieval"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+keywords = ["rag", "nlp", "islamic-heritage", "ai", "llm", "chromadb"]
+
+dependencies = [
+    # Web framework
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+    "python-multipart>=0.0.9",
+
+    # Validation & config
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "python-dotenv>=1.0.0",
+
+    # LLM & AI
+    "transformers>=4.41.0",
+    "torch>=2.3.0",
+    "sentence-transformers>=3.0.0",
+    "accelerate>=0.30.0",
+
+    # Vector database
+    "chromadb>=0.5.0",
+
+    # Keyword retrieval
+    "rank-bm25>=0.2.2",
+
+    # HTTP client (Groq/Ollama)
+    "httpx>=0.27.0",
+
+    # Data ingestion
+    "wikipedia>=1.4.0",
+
+    # Utilities
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "httpx>=0.27.0",  # for TestClient
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+athar-ingest = "athar.ingestion.ingest:run_ingestion"
+athar-serve = "athar.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+# ── Ruff (linter + formatter) ────────────────────────────────────────────────
+[tool.ruff]
+line-length = 95
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["athar"]
+
+# ── Pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+pythonpath = ["src"]
+
+# ── MyPy ─────────────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.10"
+strict = false
+ignore_missing_imports = true

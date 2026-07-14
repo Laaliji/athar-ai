@@ -1,70 +1,89 @@
-import React from 'react';
-import { MessageSquare, Plus, Settings, History } from 'lucide-react';
+import React, { useState } from 'react';
+import { MessageSquare, Plus, Settings, Trash2, LayoutDashboard } from 'lucide-react';
 
-const ConversationSidebar = ({ conversations = [], activeConversation, onSelectConversation, onNewChat }) => {
-  // Default conversations if none provided
-  const defaultConversations = [
-    { id: 1, title: 'Golden Age of Islam', preview: 'Tell me about the Golden Age...', timestamp: '2 hours ago' },
-    { id: 2, title: 'The story of Ibn Sina', preview: 'Who was Ibn Sina?', timestamp: '1 day ago' },
-    { id: 3, title: 'Architecture of the Alhambra', preview: 'Explain the architecture...', timestamp: '2 days ago' },
-  ];
-
-  const displayConversations = conversations.length > 0 ? conversations : defaultConversations;
+const ConversationSidebar = ({
+  conversations = [],
+  activeConversation,
+  onSelectConversation,
+  onNewChat,
+  onOpenAdmin,
+}) => {
+  const [hoveredId, setHoveredId] = useState(null);
 
   return (
-    <div className="sidebar flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
-        <div className="flex items-center gap-3 mb-4">
-          <MessageSquare size={24} style={{ color: 'var(--accent-primary)' }} />
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Athar AI
-          </h2>
+    <div className="sidebar">
+      {/* Logo */}
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-icon">
+          <span>أ</span>
         </div>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Islamic Heritage Explorer
-        </p>
+        <div>
+          <h2 className="sidebar-logo-name">Athar AI</h2>
+          <p className="sidebar-logo-tagline">Islamic Heritage</p>
+        </div>
       </div>
 
-      {/* New Chat Button */}
-      <div className="p-4">
-        <button
-          onClick={onNewChat}
-          className="btn-primary w-full flex items-center justify-center gap-2"
-        >
-          <Plus size={18} />
-          New Chat
+      {/* New Chat */}
+      <div className="sidebar-new-chat">
+        <button className="btn-primary sidebar-new-btn" onClick={onNewChat}>
+          <Plus size={16} />
+          New Conversation
         </button>
       </div>
 
-      {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto px-2">
-        <div className="mb-2 px-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
-            Recent Conversations
-          </h3>
-        </div>
-        {displayConversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            className={`sidebar-item ${activeConversation === conversation.id ? 'active' : ''}`}
-            onClick={() => onSelectConversation && onSelectConversation(conversation.id)}
-          >
-            <MessageSquare size={16} />
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm truncate">{conversation.title}</div>
-              <div className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
-                {conversation.preview}
-              </div>
-            </div>
+      {/* Conversations */}
+      <div className="sidebar-conversations">
+        {conversations.length > 0 && (
+          <p className="sidebar-section-label">Recent</p>
+        )}
+
+        {conversations.length === 0 ? (
+          <div className="sidebar-empty">
+            <MessageSquare size={28} className="sidebar-empty-icon" />
+            <p>No conversations yet.</p>
+            <p>Ask your first question!</p>
           </div>
-        ))}
+        ) : (
+          conversations.map((conv) => (
+            <div
+              key={conv.id}
+              className={`sidebar-item ${activeConversation === conv.id ? 'sidebar-item--active' : ''}`}
+              onClick={() => onSelectConversation?.(conv.id)}
+              onMouseEnter={() => setHoveredId(conv.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <MessageSquare size={14} className="sidebar-item-icon" />
+              <div className="sidebar-item-content">
+                <p className="sidebar-item-title">{conv.title}</p>
+                {conv.preview && (
+                  <p className="sidebar-item-preview">{conv.preview}</p>
+                )}
+              </div>
+              {hoveredId === conv.id && (
+                <button
+                  className="sidebar-item-delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Parent handles delete
+                  }}
+                  aria-label="Delete conversation"
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-        <button className="sidebar-item w-full">
-          <Settings size={18} />
+      <div className="sidebar-footer">
+        <button className="sidebar-footer-btn" onClick={onOpenAdmin}>
+          <LayoutDashboard size={16} />
+          <span>Admin Dashboard</span>
+        </button>
+        <button className="sidebar-footer-btn" onClick={() => {}}>
+          <Settings size={16} />
           <span>Settings</span>
         </button>
       </div>

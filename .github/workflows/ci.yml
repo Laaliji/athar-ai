@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Backend: Lint + Type Check + Tests ──────────────────────────
+  backend:
+    name: Backend (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov ruff httpx
+
+      - name: Lint with Ruff
+        run: ruff check src/ tests/
+
+      - name: Check formatting
+        run: ruff format --check src/ tests/
+
+      - name: Run tests
+        env:
+          PYTHONPATH: src
+          LLM_PROVIDER: huggingface
+          HF_MODEL: google/flan-t5-base
+        run: |
+          pytest tests/ -v --tb=short --cov=athar --cov-report=term-missing
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.11'
+        with:
+          fail_ci_if_error: false
+
+  # ── Frontend: Build check ────────────────────────────────────────
+  frontend:
+    name: Frontend (Node.js)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Build
+        env:
+          REACT_APP_API_URL: http://localhost:8000
+          CI: false  # Treat warnings as warnings, not errors
+        run: npm run build
+
+      - name: Check bundle size
+        run: |
+          echo "Build artifacts:"
+          du -sh build/

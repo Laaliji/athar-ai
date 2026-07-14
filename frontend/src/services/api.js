@@ -1,120 +1,159 @@
 import axios from "axios";
 
-// Create axios instance with base configuration
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+// Axios instance for regular requests
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
-  timeout: 30000, // 30 seconds timeout for RAG queries
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: BASE_URL,
+  timeout: 60000,
+  headers: { "Content-Type": "application/json" },
 });
 
-// Request interceptor for logging
+// Request/response logging
 api.interceptors.request.use(
-  (config) => {
-    console.log(
-      `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`
-    );
-    return config;
-  },
-  (error) => {
-    console.error("❌ API Request Error:", error);
-    return Promise.reject(error);
-  }
+  (config) => config,
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => {
-    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error(
-      "❌ API Response Error:",
-      error.response?.data || error.message
-    );
-
-    // Handle different error types
-    if (error.code === "ECONNABORTED") {
-      throw new Error(
-        "Request timeout - the AI system might be processing. Please try again."
-      );
-    } else if (error.response?.status === 503) {
-      throw new Error(
-        "AI system is initializing. Please wait a moment and try again."
-      );
-    } else if (error.response?.status >= 500) {
-      throw new Error("Server error. Please try again later.");
-    } else if (error.response?.status === 400) {
-      throw new Error(
-        error.response.data?.detail ||
-          "Invalid request. Please check your input."
-      );
-    } else {
-      throw new Error(
-        error.response?.data?.detail ||
-          error.message ||
-          "An unexpected error occurred."
-      );
-    }
+    const detail = error.response?.data?.detail || error.message;
+    if (error.code === "ECONNABORTED") throw new Error("Request timed out.");
+    if (error.response?.status === 503) throw new Error("AI system initializing — please wait.");
+    if (error.response?.status === 503) throw new Error("Knowledge base empty. Run ingestion first.");
+    throw new Error(detail || "Unexpected error.");
   }
 );
 
-// API service methods
+// ── API Service ─────────────────────────────────────────────────────────────
+
 export const apiService = {
-  // Health check
   async healthCheck() {
-    const response = await api.get("/api/health");
-    return response.data;
+    const { data } = await api.get("/api/health");
+    return data;
   },
 
-  // Get system status
   async getSystemStatus() {
-    const response = await api.get("/api/status");
-    return response.data;
+    const { data } = await api.get("/api/status");
+    return data;
   },
 
-  // Query the RAG system
-  async queryRAG(question, maxSources = 3) {
-    const response = await api.post("/api/query", {
+  async queryRAG(question, conversationId = null, maxSources = 3) {
+    const { data } = await api.post("/api/query", {
       question,
+      conversation_id: conversationId,
       max_sources: maxSources,
     });
-    return response.data;
+    return data;
   },
 
-  // Get sample questions
   async getSampleQuestions() {
-    const response = await api.get("/api/sample-questions");
-    return response.data;
+    const { data } = await api.get("/api/sample-questions");
+    return data;
   },
 
-  // Test connection
-  async testConnection() {
-    try {
-      const response = await api.get("/");
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+  async getConversation(conversationId) {
+    const { data } = await api.get(`/api/conversations/${conversationId}`);
+    return data;
+  },
+
+  async clearConversation(conversationId) {
+    const { data } = await api.delete(`/api/conversations/${conversationId}`);
+    return data;
+  },
+
+  // Admin
+  async getMetrics() {
+    const { data } = await api.get("/api/admin/metrics");
+    return data;
+  },
+
+  async getKBStats() {
+    const { data } = await api.get("/api/admin/kb/stats");
+    return data;
+  },
+
+  async triggerIngestion(options = {}) {
+    const { data } = await api.post("/api/admin/ingest", {
+      max_articles: options.maxArticles || 40,
+      overwrite: options.overwrite || false,
+      topics: options.topics || null,
+    });
+    return data;
+  },
+
+  async getIngestionStatus() {
+    const { data } = await api.get("/api/admin/ingest/status");
+    return data;
   },
 };
 
-// Utility functions for API calls
-export const withRetry = async (apiCall, maxRetries = 3, delay = 1000) => {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await apiCall();
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
+// ── SSE Streaming ─────────────────────────────────────────────────────────────
 
-      console.log(`🔄 Retry ${i + 1}/${maxRetries} after ${delay}ms`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      delay *= 2; // Exponential backoff
-    }
-  }
-};
+/**
+ * Stream a RAG query using Server-Sent Events.
+ * 
+ * @param {string} question - User question
+ * @param {string|null} conversationId - Session ID
+ * @param {Object} callbacks - {onSources, onToken, onDone, onError}
+ * @returns {Function} - Abort function to cancel the stream
+ */
+export function streamQuery(question, conversationId, callbacks) {
+  const { onSources, onToken, onDone, onError } = callbacks;
+  const controller = new AbortController();
 
-// Export default api instance for custom calls
+  fetch(`${BASE_URL}/api/query/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question,
+      conversation_id: conversationId,
+      stream: true,
+    }),
+    signal: controller.signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        onError?.(err.detail || "Stream failed.");
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line.length > 6) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.type === "sources") onSources?.(data.sources, data.retrieval_ms);
+              else if (data.type === "token") onToken?.(data.content);
+              else if (data.type === "done") onDone?.(data.metadata, data.conversation_id);
+              else if (data.type === "error") onError?.(data.content);
+            } catch {
+              // Ignore malformed SSE lines
+            }
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      if (err.name !== "AbortError") {
+        onError?.(err.message);
+      }
+    });
+
+  return () => controller.abort();
+}
+
 export default api;

@@ -1,84 +1,93 @@
-import React, { useState, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
-import ConversationSidebar from "./components/ConversationSidebar";
-import DarkChatInterface from "./components/DarkChatInterface";
-import LearnMorePanel from "./components/LearnMorePanel";
-import LoadingScreen from "./components/LoadingScreen";
-import { apiService } from "./services/api";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Toaster } from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
+import ConversationSidebar from './components/ConversationSidebar';
+import ChatInterface from './components/ChatInterface';
+import AdminDashboard from './components/AdminDashboard';
+import LoadingScreen from './components/LoadingScreen';
+import { apiService } from './services/api';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [systemStatus, setSystemStatus] = useState(null);
-  const [activeConversation, setActiveConversation] = useState(1);
   const [conversations, setConversations] = useState([]);
+  const [activeConvId, setActiveConvId] = useState(null);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
-    // Initialize app and check system status
-    const initializeApp = async () => {
+    const init = async () => {
       try {
-        const status = await apiService.getSystemStatus();
-        setSystemStatus(status);
-      } catch (error) {
-        console.error("Failed to get system status:", error);
-        setSystemStatus({
-          status: "error",
-          model_loaded: false,
-          database_ready: false,
-        });
+        await apiService.getSystemStatus();
+      } catch {
+        // Backend may not be up yet — that's fine, the UI still works
       } finally {
-        // Minimum loading time for smooth UX
-        setTimeout(() => setIsLoading(false), 2000);
+        setTimeout(() => setIsLoading(false), 1400);
       }
     };
-
-    initializeApp();
+    init();
   }, []);
 
-  const handleNewChat = () => {
-    const newId = conversations.length + 1;
-    setConversations([
-      {
-        id: newId,
-        title: 'New Conversation',
-        preview: 'Start a new conversation...',
-        timestamp: 'Just now',
-      },
-      ...conversations,
-    ]);
-    setActiveConversation(newId);
-  };
+  const handleNewChat = useCallback(() => {
+    const newId = uuidv4();
+    setConversations(prev => [{
+      id: newId,
+      title: 'New Conversation',
+      preview: '',
+      createdAt: new Date(),
+    }, ...prev]);
+    setActiveConvId(newId);
+  }, []);
 
-  const handleSelectConversation = (id) => {
-    setActiveConversation(id);
-  };
+  // Start the first conversation once loading is done
+  useEffect(() => {
+    if (!isLoading && activeConvId === null) {
+      handleNewChat();
+    }
+  }, [isLoading, activeConvId, handleNewChat]);
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+  const handleConversationUpdate = useCallback((convId, firstQuestion) => {
+    setConversations(prev =>
+      prev.map(c =>
+        c.id === convId
+          ? {
+              ...c,
+              title: firstQuestion.length > 42
+                ? firstQuestion.slice(0, 42) + '…'
+                : firstQuestion,
+              preview: firstQuestion,
+            }
+          : c
+      )
+    );
+  }, []);
+
+  if (isLoading) return <LoadingScreen />;
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      {/* Left Sidebar - Conversations */}
-      <div className="w-64 flex-shrink-0 hidden lg:block">
+    <div className="app-shell">
+      <aside className="app-sidebar">
         <ConversationSidebar
           conversations={conversations}
-          activeConversation={activeConversation}
-          onSelectConversation={handleSelectConversation}
+          activeConversation={activeConvId}
+          onSelectConversation={id => setActiveConvId(id)}
           onNewChat={handleNewChat}
+          onOpenAdmin={() => setShowAdmin(true)}
         />
-      </div>
+      </aside>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <DarkChatInterface />
-      </div>
+      <main className="app-main">
+        {activeConvId && (
+          <ChatInterface
+            key={activeConvId}
+            conversationId={activeConvId}
+            onConversationUpdate={handleConversationUpdate}
+          />
+        )}
+      </main>
 
-      {/* Right Panel - Learn More */}
-      <div className="w-80 flex-shrink-0 hidden xl:block border-l" style={{ borderColor: 'var(--border-color)' }}>
-        <LearnMorePanel />
-      </div>
+      {showAdmin && (
+        <AdminDashboard onClose={() => setShowAdmin(false)} />
+      )}
 
-      {/* Toast Notifications */}
       <Toaster
         position="top-right"
         toastOptions={{
@@ -88,18 +97,7 @@ function App() {
             color: 'var(--text-primary)',
             border: '1px solid var(--border-color)',
             borderRadius: '12px',
-          },
-          success: {
-            iconTheme: {
-              primary: 'var(--accent-primary)',
-              secondary: 'white',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: 'white',
-            },
+            fontSize: '14px',
           },
         }}
       />

@@ -37,25 +37,25 @@ async def lifespan(app: FastAPI):
         
         # Try to load cached system first
         if not rag_system.load_system():
-            logger.info("📖 Setting up RAG system from scratch...")
+            logger.info("Setting up RAG system from scratch...")
             if rag_system.setup():
                 rag_system.save_system()
-                logger.info("✅ RAG system initialized and cached")
+                logger.info("RAG system initialized and cached")
             else:
-                logger.error("❌ Failed to setup RAG system")
+                logger.error("Failed to setup RAG system")
                 rag_system = None
         else:
             # Still need to setup LLM
             rag_system.setup_llm()
-            logger.info("✅ RAG system loaded from cache")
+            logger.info("RAG system loaded from cache")
             
     except Exception as e:
-        logger.error(f"❌ Failed to initialize RAG system: {e}")
+        logger.error(f"Failed to initialize RAG system: {e}")
         rag_system = None
     
     yield
     
-    logger.info("🔄 Shutting down Simple Athar.AI...")
+    logger.info("Shutting down Simple Athar.AI...")
 
 # Create FastAPI app
 app = FastAPI(
@@ -107,7 +107,7 @@ class HealthResponse(BaseModel):
 @app.get("/")
 async def root():
     return {
-        "message": "🌙 Welcome to Simple Athar.AI - Islamic Heritage Explorer API",
+        "message": "Welcome to Simple Athar.AI - Islamic Heritage Explorer API",
         "version": "2.1.0",
         "docs": "/api/docs"
     }
